@@ -1,0 +1,5 @@
+## Title: PI Macro Editor
+## Interface: 90005
+## IconTexture: 135939
+## Notes: Choose a friendly nameplate and click 1 of 3 button options to update PI Macro. Must have a Macro titled "PI".
+PIMacroEditor.lua
