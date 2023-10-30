@@ -1,4 +1,13 @@
--- Create a frame to display the target's name
+local _, class = UnitClass("player")
+local YELLOW_FONT_COLOR_CODE = "|cffffff00"
+local YELLOW_FONT_COLOR_CODE_CLOSE = "|r"
+local piMacroWARNINGShown = false -- Add this variable to keep track of warning status for PI button
+local piVeMacroWARNINGShown = false -- Add this variable to keep track of warning status for PI w/ VE button
+local piNoPotMacroWARNINGShown = false -- Add this variable to keep track of warning status for PI w/o Pot button
+local playerName = UnitName("player") or "Unknown" -- Get the player's name or use "Unknown" if it's not available
+local function OnEvent(self, event, arg1)
+    if event == "PLAYER_LOGIN" and class == "PRIEST" then
+	-- Create a frame to display the target's name
 local targetNameFrame = UIParent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 targetNameFrame:SetPoint("TOPLEFT", 25, -60) -- Adjust the position as needed
 targetNameFrame:SetText("No Target")
@@ -7,20 +16,53 @@ local isButtonClickable = true
 
 local function UpdateMacro(script, buttonText)
     local targetName = UnitName("target") or "player"
+    local _, targetClass = UnitClass("target")
     if not InCombatLockdown() then
         EditMacro(GetMacroIndexByName('PI'), nil, nil, "")
         local updatedScript = string.format(script, targetName)
         EditMacro(GetMacroIndexByName('PI'), nil, nil, updatedScript)
         
-        -- Set the target name to "Angx" if the target is "player"
-        if targetName == "player" then
-            targetNameFrame:SetText("Target: Angx (" .. buttonText .. ")")
-            print(buttonText .. " updated to Angx") -- Print in chat when the target is "player"
-        else
-            targetNameFrame:SetText("Target: " .. targetName .. " (" .. buttonText .. ")")
-            print(buttonText .. " updated to " .. targetName) -- Print in chat when the target is not "player"
-        end
-        
+if targetName == "player" then
+    targetNameFrame:SetText("Target: " .. playerName .. " (" .. buttonText .. ")")
+    print("|cffffffff" .. buttonText .. " updated to " .. playerName .. "|r") -- Print in chat in white color
+else
+    targetNameFrame:SetText("Target: " .. targetName .. " (" .. buttonText .. ")")
+    local classColor = "|cffffffff" -- Default color (white) for non-specific targets
+    
+if targetClass == "DEATHKNIGHT" then
+    classColor = "|cffC41E3A" -- Red
+elseif targetClass == "DEMONHUNTER" then
+    classColor = "|cffA330C9" -- Dark Magenta
+elseif targetClass == "DRUID" then
+    classColor = "|cffFF7C0A" -- Orange
+elseif targetClass == "EVOKER" then
+    classColor = "|cff33937F" -- Dark Emerald
+elseif targetClass == "HUNTER" then
+    classColor = "|cffAAD372" -- Pistachio
+elseif targetClass == "MAGE" then
+    classColor = "|cff3FC7EB" -- Light Blue
+elseif targetClass == "MONK" then
+    classColor = "|cff00FF98" -- Spring Green
+elseif targetClass == "PALADIN" then
+    classColor = "|cffF48CBA" -- Pink
+elseif targetClass == "PRIEST" then
+    classColor = "|cffFFFFFF" -- White
+elseif targetClass == "ROGUE" then
+    classColor = "|cffFFF468" -- Yellow
+elseif targetClass == "SHAMAN" then
+    classColor = "|cff0070DD" -- Blue
+elseif targetClass == "WARLOCK" then
+    classColor = "|cff8788EE" -- Purple
+elseif targetClass == "WARRIOR" then
+    classColor = "|cffC69B6D" -- Tan
+else
+    classColor = "|cffffffff" -- Default color (White) for unknown classes
+end
+    
+    print("" .. buttonText .. " updated to " .. classColor .. targetName .. "|r") -- Print in chat with class-specific color
+end
+
+		
         isButtonClickable = false
         C_Timer.After(.1, function()  -- Set a cooldown of .1 seconds
             isButtonClickable = true
@@ -38,9 +80,19 @@ frame1:SetAlpha(0.25) -- Set initial transparency
 
 frame1:SetScript("OnClick", function(self, button, down)
     if button == "LeftButton" and isButtonClickable then
-        -- The script with a placeholder for target's name
-        local script = "#showtooltip\n/cast [@mouseover,help,nodead][@%s] Power Infusion \n/cast Power Infusion\n/use 13\n/use Elemental Potion of Ultimate Power"
-        UpdateMacro(script, "PI")
+        local macroIndex = GetMacroIndexByName('PI')
+        if macroIndex == 0 then
+            print("|cffffff00PI macro not found. Create a Macro Named \"PI\"|r") -- Print a yellow message in chat if the "PI" macro is not found
+        else
+            local _, _, body = GetMacroInfo(macroIndex)
+            if body and body ~= "" then
+                print("|cffffff00WARNING: PI Macro is not empty!|r") -- Print a yellow warning message if the "PI" macro is not empty
+            else
+                local script = "#showtooltip\n/cast [@mouseover,help,nodead][@%s] Power Infusion \n/cast Power Infusion\n/use 13\n/use Elemental Potion of Ultimate Power"
+                UpdateMacro(script, "PI") -- Update the macro only if it exists and is empty
+                piMacroWARNINGShown = true -- Set the warning status to true if the macro is not empty
+            end
+        end
     end
 end)
 
@@ -61,11 +113,22 @@ frame2:SetAlpha(0.25) -- Set initial transparency
 
 frame2:SetScript("OnClick", function(self, button, down)
     if button == "LeftButton" and isButtonClickable then
-        -- The script for casting Vampiric Embrace
-        local script = "#showtooltip\n/cast [@mouseover,help,nodead][@%s] Power Infusion \n/cast Power Infusion\n/use 13\n/use Elemental Potion of Ultimate Power\n/cast Vampiric Embrace"
-        UpdateMacro(script, "PI w/ VE")
+        local macroIndex = GetMacroIndexByName('PI')
+        if macroIndex == 0 then
+            print("|cffffff00PI macro not found. Create a Macro Named \"PI\"|r") -- Print a yellow message in chat if the "PI" macro is not found
+        else
+            local _, _, body = GetMacroInfo(macroIndex)
+            if body and body ~= "" then
+                print("|cffffff00WARNING: PI Macro is not empty!|r") -- Print a yellow warning message if the "PI" macro is not empty
+            else
+                local script = "#showtooltip\n/cast [@mouseover,help,nodead][@%s] Power Infusion \n/cast Power Infusion\n/use 13\n/use Elemental Potion of Ultimate Power\n/cast Vampiric Embrace"
+                UpdateMacro(script, "PI w/ VE") -- Update the macro only if it exists and is empty
+                piVeMacroWARNINGShown = true -- Set the warning status to true if the macro is not empty
+            end
+        end
     end
 end)
+
 
 frame2:SetScript("OnEnter", function(self)
     self:SetAlpha(1.0) -- Set fully visible when hovered
@@ -79,21 +142,29 @@ end)
 local macroButton = CreateFrame("Button", "MyMacroButton", UIParent, "UIPanelButtonTemplate")
 macroButton:SetSize(70, 30)
 macroButton:SetPoint("TOPLEFT", 160, -20) -- Adjust the position as needed
-macroButton:SetText("Run Macro")
+macroButton:SetText("Clear")
 macroButton:SetAlpha(0.25)
 
 macroButton:SetScript("OnClick", function(self, button, down)
-    if button == "LeftButton" and isButtonClickable then
-        -- Your macro script here (without the /run)
-        local macroScript = "EditMacro(GetMacroIndexByName('PI'), nil, nil, '')"
-        -- Execute the macro script using RunScript function
-        RunScript(macroScript)
-        print("Cleared Current PI Target")
-        targetNameFrame:SetText("No Target") -- Update targetNameFrame to "No Target"
-        -- Put cooldown logic here if needed
+    if button == "LeftButton" then
+        local macroIndex = GetMacroIndexByName('PI')
+        if macroIndex == 0 then
+            print("|cffffff00PI macro not found. Create a Macro Named \"PI\"|r") -- Print a yellow message in chat if the "PI" macro is not found
+        else
+            local _, _, body = GetMacroInfo(macroIndex)
+            if body and body ~= "" then
+                -- Clear the macro script directly
+                local macroScript = "EditMacro(GetMacroIndexByName('PI'), nil, nil, '')"
+                RunScript(macroScript)
+                print("|cffffff00Cleared current PI target.|r")
+                targetNameFrame:SetText("No Target") -- Update targetNameFrame to "No Target"
+                -- Put cooldown logic here if needed
+            else
+                print("|cffffff00PI macro is already empty.|r") -- Print a message if the "PI" macro is already empty
+            end
+        end
     end
 end)
-
 macroButton:SetScript("OnEnter", function(self)
     self:SetAlpha(1.0) -- Set fully visible when hovered
 end)
@@ -160,13 +231,26 @@ frame3:SetPoint("TOPLEFT", 230, -20) -- Adjust the position as needed
 frame3:SetText("PI w/o Pot")
 frame3:SetAlpha(0.25) -- Set initial transparency
 
+
 frame3:SetScript("OnClick", function(self, button, down)
     if button == "LeftButton" and isButtonClickable then
-        -- The script without the Elemental Potion line
-        local script = "#showtooltip\n/cast [@mouseover,help,nodead][@%s] Power Infusion \n/cast Power Infusion\n/use 13\n/cast Vampiric Embrace"
-        UpdateMacro(script, "PI w/o Pot")
+        local macroIndex = GetMacroIndexByName('PI')
+		--local currentMacroBody = select(3, GetMacroInfo(macroIndex))
+        if macroIndex == 0 then
+            print("|cffffff00PI macro not found. Create a Macro Named \"PI\"|r") -- Print a yellow message in chat if the "PI" macro is not found
+        else
+            local _, _, body = GetMacroInfo(macroIndex)
+            if body and body ~= "" then
+                print("|cffffff00WARNING: PI Macro is not empty!|r") -- Print a yellow warning message if the "PI" macro is not empty
+            else
+                local script = "#showtooltip\n/cast [@mouseover,help,nodead][@%s] Power Infusion \n/cast Power Infusion\n/use 13\n/cast Vampiric Embrace"
+                UpdateMacro(script, "PI w/o Pot") -- Update the macro only if it exists and is empty
+                piVeMacroWARNINGShown = true -- Set the warning status to true if the macro is not empty
+            end
+        end
     end
 end)
+
 
 frame3:SetScript("OnEnter", function(self)
     self:SetAlpha(1.0) -- Set fully visible when hovered
@@ -201,6 +285,12 @@ macroButton:SetScript("OnUpdate", function(self, elapsed)
         SetButtonVisibility(macroButton, self:IsMouseOver()) -- Handle visibility based on hover state
     end
 end)
+    end
+end
+
+local frame = CreateFrame("Frame")
+frame:RegisterEvent("PLAYER_LOGIN")
+frame:SetScript("OnEvent", OnEvent)
 
 macroButton:SetScript("OnEnter", function(self)
     SetButtonVisibility(macroButton, true) -- Set fully visible when hovered
